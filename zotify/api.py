@@ -1234,8 +1234,6 @@ class Playlist(Container):
 
         self.hasMetadata = True
 
-    python
-
     def fetch_items(self, hide_loader: bool = False) -> list[dict | None]:
         playlist_items = super().fetch_items(ITEMS, "additional_types=track%2Cepisode", hide_loader)
         for item in playlist_items:
