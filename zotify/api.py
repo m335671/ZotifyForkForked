@@ -1221,28 +1221,29 @@ class Playlist(Container):
         
         self.owner: User = self.parse_linked_objs([playlist_resp[OWNER]], User)[0]
         self.printing_label = fix_filename(self.owner.name) + ' - ' + fix_filename(self.name)
-        
-        if TRACKS in playlist_resp and ITEMS in playlist_resp[TRACKS]:
-            items = [item for item in playlist_resp[TRACKS][ITEMS] if item[TRACK] is not None]
-            tracks_or_eps: list[dict] = [item[TRACK] for item in items]
+
+        if ITEMS in playlist_resp and ITEMS in playlist_resp[ITEMS]:
+            items = [item for item in playlist_resp[ITEMS][ITEMS] if item[ITEM] is not None]
+            tracks_or_eps: list[dict] = [item[ITEM] for item in items]
             for track_or_ep, item in zip(tracks_or_eps, items):
                 track_or_ep[ADDED_AT] = item[ADDED_AT]
                 track_or_ep[ADDED_BY] = item[ADDED_BY]
                 track_or_ep[IS_LOCAL] = item[IS_LOCAL]
-            self.tracks_or_eps = self.parse_linked_objs(tracks_or_eps, (Track, Episode)) # possible underflow if len(items) > 100
-            # self.tracks_or_eps.sort(key=lambda s: strptime_utc(s[ADDED_AT]))
-        self.needs_expansion = NEXT not in playlist_resp[TRACKS] or playlist_resp[TRACKS][NEXT] is not None
-        
+            self.tracks_or_eps = self.parse_linked_objs(tracks_or_eps, (Track, Episode))
+        self.needs_expansion = ITEMS not in playlist_resp or NEXT not in playlist_resp[ITEMS] or playlist_resp[ITEMS][NEXT] is not None
+
         self.hasMetadata = True
-    
+
+    python
+
     def fetch_items(self, hide_loader: bool = False) -> list[dict | None]:
-        playlist_items = super().fetch_items(TRACKS, "additional_types=track%2Cepisode", hide_loader)
+        playlist_items = super().fetch_items(ITEMS, "additional_types=track%2Cepisode", hide_loader)
         for item in playlist_items:
-            item[TRACK][ADDED_AT] = item[ADDED_AT]
-            item[TRACK][ADDED_BY] = item[ADDED_BY]
-            item[TRACK][IS_LOCAL] = item[IS_LOCAL]
-        track_or_episode_resps = [item[TRACK] if item[TRACK] is not None and item[TRACK][URI] else None for item in playlist_items]
-        # playlist_items.sort(key=lambda s: strptime_utc(s[ADDED_AT]))
+            item[ITEM][ADDED_AT] = item[ADDED_AT]
+            item[ITEM][ADDED_BY] = item[ADDED_BY]
+            item[ITEM][IS_LOCAL] = item[IS_LOCAL]
+        track_or_episode_resps = [item[ITEM] if item[ITEM] is not None and item[ITEM]
+        [URI] else None for item in  playlist_items]
         return track_or_episode_resps
 
 
